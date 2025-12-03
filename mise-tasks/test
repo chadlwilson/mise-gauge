@@ -4,15 +4,22 @@ set -euo pipefail
 
 mise plugin link --force gauge .
 mise cache clear
-mise install gauge@1.6.21
 
-# Capture and display the output while also verifying it
-output=$(mise exec "gauge@1.6.21" -- "gauge" --version)
-echo "gauge output: $output"
+versions_to_test=("1.5" "1.6.21")
 
-if echo "$output" | grep -q 'Gauge version: 1.6.21'; then
-    echo "✓ Tests passed"
-else
-    echo "✗ Test failed: expected version gauge@1.6.21"
-    exit 1
-fi
+for version in "${versions_to_test[@]}"; do
+    echo "Testing gauge version: $version"
+
+    mise install "gauge@${version}"
+
+    # Capture and display the output while also verifying it
+    output=$(mise exec "gauge@${version}" -- "gauge" --version)
+    echo "gauge output: $output"
+
+    if echo "$output" | grep -q "Gauge version: ${version}"; then
+        echo "✓ Tests passed"
+    else
+        echo "✗ Test failed: expected version gauge@${version}"
+        exit 1
+    fi
+done
